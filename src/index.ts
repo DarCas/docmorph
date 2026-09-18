@@ -4,6 +4,16 @@
  * Licensed under the MIT License.
  */
 
+/**
+ * DocMorph HTTP entry point: DOCX-to-PDF conversion microservice.
+ *
+ * Exposes `GET /health` (public load-balancer probe), `GET /robots.txt`
+ * (public crawler disallow), `POST /convert` (authenticated multipart
+ * upload returning `application/pdf`) and a silent JSON `404` for anything
+ * else. Cross-cutting concerns, in middleware order: request-scoped logging,
+ * per-IP rate limiting, API-key auth, and CORS preflight handling.
+ */
+
 import express, { type NextFunction, type Request, type Response } from 'express'
 import { rateLimit } from 'express-rate-limit'
 import multer from 'multer'
@@ -18,26 +28,58 @@ import {
 } from './convert.js'
 import { Logger } from './logger.js'
 
+/** HTTP listen port. Defaults to 8080. */
 const PORT = Number(env.PORT ?? 8080)
+
+/** Maximum accepted upload size in bytes. Defaults to 10 MiB. */
 const MAX_FILE_SIZE = Number(env.MAX_FILE_SIZE ?? 10 * 1024 * 1024)
+
+/** Hard timeout in milliseconds for a single LibreOffice conversion. */
 const CONVERT_TIMEOUT_MS = Number(env.CONVERT_TIMEOUT_MS ?? 60_000)
+
+/** Maximum number of simultaneous conversions; bounds LibreOffice load. */
 const MAX_CONCURRENT = Number(env.MAX_CONCURRENT ?? 3)
+
+/** Length of the rate-limit fixed window in milliseconds. */
 const RATE_LIMIT_WINDOW_MS = Number(env.RATE_LIMIT_WINDOW_MS ?? 60_000)
+
+/** Maximum requests per window per client IP (public paths excluded). */
 const RATE_LIMIT_MAX = Number(env.RATE_LIMIT_MAX ?? 60)
+
+/**
+ * Configured API keys parsed from the comma-separated `API_KEYS` variable.
+ * Empty or unset means the service runs open (a startup warning applies).
+ */
 const API_KEYS = new Set(
     ( env.API_KEYS ?? '' )
         .split(',')
         .map(key => key.trim())
         .filter(key => key.length > 0),
 )
+
+/** Whether authentication is enforced (true when at least one key exists). */
 const AUTH_ENABLED = API_KEYS.size > 0
 
+/**
+ * Hashes an API key with SHA-256 so comparisons never handle raw secrets
+ * beyond the initial extraction step.
+ *
+ * @param key - Raw API key as provided by the client or configured on the server.
+ * @returns The SHA-256 digest of the key.
+ */
 function hashKey(key: string): Buffer {
     return createHash('sha256')
         .update(key)
         .digest()
 }
 
+/**
+ * Extracts the client-provided API key from `x-api-key` or, as a fallback,
+ * from an `Authorization: Bearer <key>` header.
+ *
+ * @param req - Incoming Express request.
+ * @returns The trimmed key, or `undefined` when neither header is present.
+ */
 function getProvidedKey(req: Request): string | undefined {
     const headerKey = req.header('x-api-key')
         ?.trim()
@@ -59,6 +101,13 @@ function getProvidedKey(req: Request): string | undefined {
     return undefined
 }
 
+/**
+ * Verifies a provided key against the configured set using SHA-256 digests
+ * compared with {@link timingSafeEqual} to avoid timing side channels.
+ *
+ * @param provided - Key extracted from the request, if any.
+ * @returns `true` when the key matches a configured entry.
+ */
 function isAuthorized(provided: string | undefined): boolean {
     if (!provided) {
         return false
@@ -77,12 +126,31 @@ function isAuthorized(provided: string | undefined): boolean {
     return false
 }
 
+/** Conversion pool bounding simultaneous LibreOffice invocations. */
 const pool = new Semaphore(MAX_CONCURRENT)
 
-function isHealthCheck(req: Request): boolean {
-    return req.method === 'GET' && req.path === '/health'
+/**
+ * Reports whether a request targets a public path exempt from both rate
+ * limiting and authentication: `GET /health`, `GET /robots.txt`, and any
+ * `OPTIONS` preflight (browsers must reach preflight without credentials).
+ *
+ * @param req - Incoming Express request.
+ * @returns `true` when the request bypasses auth and rate limiting.
+ */
+function isPublicPath(req: Request): boolean {
+    if (req.method === 'OPTIONS') {
+        return true
+    }
+
+    return req.method === 'GET' &&
+        ( req.path === '/health' || req.path === '/robots.txt' )
 }
 
+/**
+ * Per-IP fixed-window rate limiter. Public paths are skipped; over-limit
+ * requests receive `429 { error: 'Too many requests' }` plus the standard
+ * `RateLimit-*` headers set by the library.
+ */
 const limiter = rateLimit({
     handler: (req, res) => {
         ( req.logger as Logger ).warn('Rate limited', {path: req.path})
@@ -92,11 +160,16 @@ const limiter = rateLimit({
     },
     legacyHeaders: false,
     limit: RATE_LIMIT_MAX,
-    skip: isHealthCheck,
+    skip: isPublicPath,
     standardHeaders: 'draft-8',
     windowMs: RATE_LIMIT_WINDOW_MS,
 })
 
+/**
+ * In-memory upload handler: single `file` field capped at `MAX_FILE_SIZE`.
+ * Memory storage keeps job temp dirs (managed by `convert.ts`) as the only
+ * on-disk footprint.
+ */
 const upload = multer({
     limits: {
         fileSize: MAX_FILE_SIZE,
@@ -108,24 +181,49 @@ const upload = multer({
 const app = express()
 
 app.disable('x-powered-by')
+// Single Apache hop (ProxyPass localhost:3001): trust the closest proxy only.
+// `true` would trust every hop and re-trigger ERR_ERL_PERMISSIVE_TRUST_PROXY.
+app.set('trust proxy', 1)
 
+/**
+ * Augments `Express.Request` with the request-scoped logger attached by the
+ * logging middleware below.
+ */
 declare global {
     namespace Express {
         interface Request {
+            /** Request-scoped logger; always set before auth/rate-limit code runs. */
             logger?: Logger
         }
     }
 }
 
+/**
+ * Logging middleware: attaches a fresh {@link Logger} with a random UUID to
+ * every request. Must stay first so downstream handlers can always log.
+ */
 app.use((req, _res, next) => {
     req.logger = new Logger(randomUUID())
     next()
 })
 
+/** Applies per-IP rate limiting to all non-public paths. */
 app.use(limiter)
 
+/**
+ * API-key authentication middleware.
+ *
+ * Public paths pass through untouched. Unknown (unmapped) paths also pass
+ * through so the catch-all below answers a silent `404` instead of leaking
+ * a `401` to scanners. Only `POST /convert` is challenged; failures are
+ * logged and answered with `401 { error: 'Unauthorized' }`.
+ */
 app.use((req: Request, res: Response, next: NextFunction): void => {
-    if (!AUTH_ENABLED || isHealthCheck(req)) {
+    if (!AUTH_ENABLED || isPublicPath(req)) {
+        return next()
+    }
+
+    if (req.method !== 'POST' || req.path !== '/convert') {
         return next()
     }
 
@@ -139,6 +237,30 @@ app.use((req: Request, res: Response, next: NextFunction): void => {
         .json({error: 'Unauthorized'})
 })
 
+/**
+ * CORS preflight middleware: answers every `OPTIONS` request with `204` and
+ * permissive CORS headers. Intentionally silent (no logging) and public, so
+ * browsers can probe `POST /convert` (which uses the non-safelisted
+ * `x-api-key` header) without credentials.
+ */
+app.use((req: Request, res: Response, next: NextFunction): void => {
+    if (req.method !== 'OPTIONS') {
+        return next()
+    }
+
+    res.setHeader('Allow', 'GET, POST, OPTIONS')
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Api-Key, Authorization')
+    res.setHeader('Content-Length', '0')
+    res.status(204).end()
+})
+
+/**
+ * `GET /health` — public liveness probe reporting status, auth mode,
+ * conversion-pool load, and configured limits. Excluded from auth and rate
+ * limiting so load-balancer and Docker healthchecks never trip.
+ */
 app.get('/health', (_req, res) => {
     res.json({
         authEnabled: AUTH_ENABLED,
@@ -157,6 +279,29 @@ app.get('/health', (_req, res) => {
     })
 })
 
+/**
+ * `GET /robots.txt` — public crawler directive disallowing all indexing
+ * (`User-agent: *` + `Disallow: /`). Silent by design: no auth, no rate
+ * limiting, no logging.
+ */
+app.get('/robots.txt', (_req, res) => {
+    res.type('text/plain')
+        .send([
+            'User-agent: *',
+            'Disallow: /',
+        ].join('\n'))
+})
+
+/**
+ * `POST /convert` — converts an uploaded `.docx` (`multipart` field `file`)
+ * to PDF and streams it back as `application/pdf` with an inline
+ * `Content-Disposition` filename sanitized to `[A-Za-z0-9._-]`.
+ *
+ * Flow: presence check (`412` when the field is missing) → extension check
+ * (`412`) → semaphore slot → `convertDocxToPdf` (magic-byte, LibreOffice and
+ * `%PDF` checks inside) → PDF response. The slot is always released in a
+ * `finally` block. Conversion errors propagate to the typed error handler.
+ */
 app.post('/convert', upload.single('file'), async (req: Request, res: Response, next: NextFunction) => {
     const started = Date.now()
     const logger = req.logger as Logger
@@ -223,6 +368,23 @@ app.post('/convert', upload.single('file'), async (req: Request, res: Response, 
     }
 })
 
+/**
+ * Catch-all for unmapped paths: silent JSON `404 { error: 'Not found' }`.
+ * Deliberately auth-free and log-free so scanner noise (`/`, `/favicon.ico`,
+ * …) neither pollutes logs nor reveals whether auth is enabled.
+ */
+app.use((_req: Request, res: Response) => {
+    res.status(404)
+        .json({error: 'Not found'})
+})
+
+/**
+ * Typed error handler (must stay after all routes).
+ *
+ * Maps {@link ConversionError} codes to statuses (`UNSUPPORTED_TYPE`→400,
+ * `INVALID_CONTENT`→415, anything else→500), Multer upload errors to 400,
+ * and every unexpected failure to a generic 500 without leaking internals.
+ */
 app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
     const logger = req.logger as Logger
 
@@ -269,6 +431,7 @@ app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
         .json({error: 'Internal conversion failure'})
 })
 
+/** Starts the HTTP server and logs the effective runtime configuration. */
 app.listen(PORT, () => {
     console.log(`docmorph listening on port ${PORT} (auth ${AUTH_ENABLED ? `enabled, ${API_KEYS.size} key(s)` : 'disabled, open'}, rate ${RATE_LIMIT_MAX}/${RATE_LIMIT_WINDOW_MS}ms)`)
 })
