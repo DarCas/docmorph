@@ -16,9 +16,11 @@
 
 import express, { type NextFunction, type Request, type Response } from 'express'
 import { rateLimit } from 'express-rate-limit'
+import clc from 'cli-color'
 import multer from 'multer'
 import { createHash, randomUUID, timingSafeEqual } from 'node:crypto'
-import { env } from 'node:process'
+import { createRequire } from 'node:module'
+import { env, stdout } from 'node:process'
 import { Semaphore } from './concurrency.js'
 import {
     convertDocxToPdf,
@@ -59,6 +61,51 @@ const API_KEYS = new Set(
 
 /** Whether authentication is enforced (true when at least one key exists). */
 const AUTH_ENABLED = API_KEYS.size > 0
+
+/**
+ * Application version read from `package.json` for the startup banner.
+ * Resolves from the project root in both dev (`src/`) and compiled (`dist/`)
+ * layouts; falls back to `"unknown"` when unreadable.
+ */
+let VERSION = 'unknown'
+
+try {
+    VERSION = ( createRequire(import.meta.url)('../package.json') as {
+        version?: string
+    } ).version ?? 'unknown'
+} catch {
+    VERSION = 'unknown'
+}
+
+/**
+ * Whether the startup banner may use ANSI colors. Enabled only on interactive
+ * terminals (`stdout` is a TTY, `NO_COLOR` unset, sane `TERM`) so Docker and
+ * piped logs stay plain and grep-friendly.
+ */
+const USE_COLORS = Boolean(stdout.isTTY) && env.NO_COLOR == null && env.TERM !== 'dumb'
+
+/**
+ * Applies a `cli-color` style when colors are enabled, otherwise returns the
+ * text untouched.
+ *
+ * @param text - Text to style.
+ * @param style - `cli-color` formatter such as `clc.bold.cyan`.
+ * @returns Styled text on interactive CLIs, plain text everywhere else.
+ */
+function paint(text: string, style: (msg: string) => string): string {
+    return USE_COLORS ? style(text) : text
+}
+
+/**
+ * Formats a millisecond duration for human consumption in the startup banner
+ * (`60000` → `"60s"`, `500` → `"500ms"`).
+ *
+ * @param ms - Duration in milliseconds.
+ * @returns Compact human-readable duration.
+ */
+function formatDuration(ms: number): string {
+    return ms % 1000 === 0 ? `${ms / 1000}s` : `${ms}ms`
+}
 
 /**
  * Hashes an API key with SHA-256 so comparisons never handle raw secrets
@@ -431,7 +478,20 @@ app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
         .json({error: 'Internal conversion failure'})
 })
 
-/** Starts the HTTP server and logs the effective runtime configuration. */
+/**
+ * Starts the HTTP server and prints the startup banner with the effective
+ * runtime configuration (version, port, auth mode, rate limit). Colors are
+ * applied via `cli-color` on interactive CLIs only; piped and Docker logs
+ * stay plain.
+ */
 app.listen(PORT, () => {
-    console.log(`docmorph listening on port ${PORT} (auth ${AUTH_ENABLED ? `enabled, ${API_KEYS.size} key(s)` : 'disabled, open'}, rate ${RATE_LIMIT_MAX}/${RATE_LIMIT_WINDOW_MS}ms)`)
+    const authValue = AUTH_ENABLED
+        ? `enabled (${API_KEYS.size} key${API_KEYS.size === 1 ? '' : 's'})`
+        : 'disabled (open)'
+
+    console.log([
+        `${paint(`docmorph v${VERSION}`, clc.bold.cyan)} listening on ${paint(`:${PORT}`, clc.bold)}`,
+        `  ${paint('auth:', clc.blackBright)}       ${paint(authValue, AUTH_ENABLED ? clc.green : clc.yellow)}`,
+        `  ${paint('rate limit:', clc.blackBright)} ${paint(`${RATE_LIMIT_MAX} req / ${formatDuration(RATE_LIMIT_WINDOW_MS)}`, clc.magenta)}`,
+    ].join('\n'))
 })

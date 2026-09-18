@@ -5,12 +5,14 @@
     "url": "https://casertano.name"
   },
   "dependencies": {
+    "cli-color": "^2.0.4",
     "express": "^4.21.2",
     "express-rate-limit": "^8.7.0",
     "multer": "^2.2.0"
   },
   "description": "Lockbox LibreOffice HTTP conversion worker",
   "devDependencies": {
+    "@types/cli-color": "^2.0.6",
     "@types/express": "^4.17.21",
     "@types/multer": "^2.2.0",
     "@types/node": "^22.10.5",
@@ -31,5 +33,5 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "type": "module",
-  "version": "1.0.0"
+  "version": "1.2.0"
 }
