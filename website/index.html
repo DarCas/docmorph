@@ -1,0 +1,101 @@
+<!--
+  ~ Dario Casertano <dario@casertano.name>
+  ~ Copyright (c) 2026 Casertano Dario – All rights reserved.
+  ~ Licensed under the MIT License.
+  -->
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>DocMorph — DOCX to PDF HTTP Microservice</title>
+    <meta
+        name="description"
+        content="Stateless, Docker-ready HTTP service for converting DOCX documents to PDF with headless LibreOffice."
+    />
+    <meta name="author" content="Dario Casertano"/>
+    <meta name="theme-color" content="#141310"/>
+    <link rel="canonical" href="https://docmorph.os.darcas.app/"/>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+
+    <meta property="og:type" content="website"/>
+    <meta property="og:site_name" content="DocMorph"/>
+    <meta property="og:title" content="DocMorph — DOCX to PDF HTTP Microservice"/>
+    <meta
+        property="og:description"
+        content="Stateless, Docker-ready HTTP service for converting DOCX documents to PDF with headless LibreOffice."
+    />
+    <meta property="og:url" content="https://docmorph.os.darcas.app/"/>
+    <meta property="og:image" content="https://docmorph.os.darcas.app/og-image.png"/>
+    <meta property="og:image:width" content="1200"/>
+    <meta property="og:image:height" content="630"/>
+    <meta
+        property="og:image:alt"
+        content="DocMorph — a tiny HTTP service that turns DOCX documents into PDF."
+    />
+    <meta property="og:locale" content="en_US"/>
+
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" content="DocMorph — DOCX to PDF HTTP Microservice"/>
+    <meta
+        name="twitter:description"
+        content="Stateless, Docker-ready HTTP service for converting DOCX documents to PDF with headless LibreOffice."
+    />
+    <meta name="twitter:image" content="https://docmorph.os.darcas.app/og-image.png"/>
+
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@graph": [
+                {
+                    "@id": "https://docmorph.os.darcas.app/#website",
+                    "@type": "WebSite",
+                    "description": "Stateless, Docker-ready HTTP service for converting DOCX documents to PDF with headless LibreOffice.",
+                    "inLanguage": "en",
+                    "name": "DocMorph",
+                    "publisher": {
+                        "@id": "https://casertano.name/"
+                    },
+                    "url": "https://docmorph.os.darcas.app/"
+                },
+                {
+                    "@id": "https://casertano.name/",
+                    "@type": "Organization",
+                    "email": "dario@casertano.name",
+                    "name": "Dario Casertano",
+                    "url": "https://casertano.name/"
+                },
+                {
+                    "@id": "https://docmorph.os.darcas.app/#software",
+                    "@type": "SoftwareApplication",
+                    "applicationCategory": "DeveloperApplication",
+                    "applicationSubCategory": "Document Conversion",
+                    "author": {
+                        "@id": "https://casertano.name/"
+                    },
+                    "codeRepository": "https://github.com/DarCas/docmorph",
+                    "description": "A stateless HTTP microservice that converts DOCX documents to PDF using headless LibreOffice. One endpoint, hardened uploads, concurrency control, optional API-key auth and a public health endpoint.",
+                    "license": "https://opensource.org/licenses/MIT",
+                    "name": "DocMorph",
+                    "offers": {
+                        "@type": "Offer",
+                        "price": "0",
+                        "priceCurrency": "USD"
+                    },
+                    "operatingSystem": "Docker",
+                    "publisher": {
+                        "@id": "https://casertano.name/"
+                    },
+                    "softwareVersion": "0.0.0",
+                    "url": "https://docmorph.os.darcas.app/"
+                }
+            ]
+        }
+    </script>
+</head>
+<body>
+<div id="root"></div>
+<script type="module" src="/src/main.tsx"></script>
+</body>
+</html>

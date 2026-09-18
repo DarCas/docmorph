@@ -1,0 +1,34 @@
+# DocMorph
+
+> A stateless HTTP microservice that converts DOCX documents to PDF using headless LibreOffice. One endpoint, Docker-ready, concurrency-safe.
+
+DocMorph is a self-hosted service that does exactly one job: it accepts a `.docx` file on `POST /convert` and streams back a PDF. It is written in TypeScript, runs on Node.js >= 22, and ships as a single container.
+
+## Key facts
+
+- Input: `.docx` (OOXML), multipart field named `file`, max 10 MiB by default.
+- Output: `application/pdf`, `Content-Disposition: inline; filename="<name>.pdf"`.
+- Endpoint: `POST /convert`.
+- Health: `GET /health` — public, unauthenticated, excluded from rate limiting.
+- Auth: optional API keys. When `API_KEYS` is set, every route except `/health` requires `x-api-key: <key>` or `Authorization: Bearer <key>`.
+- Rate limiting: per-client-IP fixed window, 60 requests per 60 s by default (`/health` excluded).
+- Concurrency: bounded pool, 3 simultaneous conversions by default.
+- Timeout: 60 s per conversion by default.
+- Validation: file extension check, OOXML/ZIP magic-byte check, `%PDF` assertion on the output.
+- Runtime: Node.js >= 22, Docker (the image bundles LibreOffice core + Writer and fonts).
+- License: MIT.
+
+## Deployment
+
+```bash
+docker run -d --name docmorph \
+  -p 8080:8080 \
+  -e API_KEYS="your-secret-key" \
+  ghcr.io/darcas/docmorph:latest
+```
+
+## Links
+
+- Source code: https://github.com/DarCas/docmorph
+- Website: https://docmorph.os.darcas.app/
+- Author: Dario Casertano (https://casertano.name)

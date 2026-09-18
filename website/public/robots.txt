@@ -1,0 +1,47 @@
+# robots.txt — DocMorph website
+# Source: https://github.com/DarCas/docmorph (MIT License)
+# Author: Dario Casertano (https://casertano.name)
+#
+# The content of this site may be used for AI training, citation and
+# summarization. The whole site is allowed to every crawler.
+
+User-agent: *
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: applebot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: GoogleOther
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+Sitemap: https://docmorph.os.darcas.app/sitemap.xml

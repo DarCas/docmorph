@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="DocMorph — DOCX to PDF HTTP microservice">
+	<defs>
+		<style>
+			@font-face {
+				font-family: 'Space Grotesk';
+				font-style: normal;
+				font-weight: 700;
+				src: url('../node_modules/@fontsource/space-grotesk/files/space-grotesk-latin-700-normal.woff2') format('woff2');
+			}
+			@font-face {
+				font-family: 'Space Grotesk';
+				font-style: normal;
+				font-weight: 400;
+				src: url('../node_modules/@fontsource/space-grotesk/files/space-grotesk-latin-400-normal.woff2') format('woff2');
+			}
+			@font-face {
+				font-family: 'IBM Plex Mono';
+				font-style: normal;
+				font-weight: 600;
+				src: url('../node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-600-normal.woff2') format('woff2');
+			}
+			@font-face {
+				font-family: 'IBM Plex Mono';
+				font-style: normal;
+				font-weight: 400;
+				src: url('../node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2') format('woff2');
+			}
+		</style>
+		<pattern id="dotgrid" width="28" height="28" patternUnits="userSpaceOnUse">
+			<circle cx="1" cy="1" r="1" fill="#2b2923" />
+		</pattern>
+		<linearGradient id="glow" x1="0" y1="0" x2="1" y2="0">
+			<stop offset="0" stop-color="#e64a38" stop-opacity="0" />
+			<stop offset="0.5" stop-color="#e64a38" stop-opacity="0.9" />
+			<stop offset="1" stop-color="#e64a38" stop-opacity="0" />
+		</linearGradient>
+	</defs>
+
+	<rect width="1200" height="630" fill="#141310" />
+	<rect width="1200" height="630" fill="url(#dotgrid)" />
+
+	<!-- frame -->
+	<rect x="32" y="32" width="1136" height="566" fill="none" stroke="#2b2923" />
+
+	<!-- brand row -->
+	<g transform="translate(72, 84)">
+		<rect x="0" y="0" width="34" height="34" rx="4" fill="none" stroke="#3c3930" />
+		<path d="M8.5 5h9.5l6.5 6.5V29H8.5z" fill="none" stroke="#ece7db" stroke-width="1.6" stroke-linejoin="round" />
+		<path d="M18 5v6.5h6.5" fill="none" stroke="#ece7db" stroke-width="1.6" stroke-linejoin="round" />
+		<path d="M11.5 20.5h7m0 0-2.8-2.8M18.5 20.5l-2.8 2.8" fill="none" stroke="#e64a38" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+		<text x="52" y="24" font-family="'IBM Plex Mono', ui-monospace, monospace" font-size="21" font-weight="600" letter-spacing="7" fill="#ece7db">DOCMORPH</text>
+	</g>
+
+	<!-- eyebrow -->
+	<text x="72" y="196" font-family="'IBM Plex Mono', ui-monospace, monospace" font-size="17" letter-spacing="4" fill="#a39c8c">OPEN SOURCE · SELF-HOSTED · DOCX → PDF</text>
+
+	<!-- headline -->
+	<text x="68" y="330" font-family="'Space Grotesk', system-ui, sans-serif" font-size="104" font-weight="700" letter-spacing="-3" fill="#ece7db">DOCX in.</text>
+	<text x="68" y="440" font-family="'Space Grotesk', system-ui, sans-serif" font-size="104" font-weight="700" letter-spacing="-3" fill="#e64a38">PDF out.</text>
+
+	<!-- tagline -->
+	<text x="72" y="512" font-family="'Space Grotesk', system-ui, sans-serif" font-size="30" fill="#a39c8c">A tiny HTTP service for document conversion.</text>
+
+	<!-- meta -->
+	<text x="72" y="562" font-family="'IBM Plex Mono', ui-monospace, monospace" font-size="16" letter-spacing="2" fill="#767061">POST /convert · APPLICATION/PDF · MIT</text>
+
+	<!-- document card -->
+	<g transform="translate(836, 150)">
+		<rect x="0" y="0" width="292" height="356" rx="4" fill="#f4efe4" />
+		<rect x="0" y="0" width="292" height="30" fill="#e6dfd0" />
+		<text x="16" y="20" font-family="'IBM Plex Mono', ui-monospace, monospace" font-size="13" letter-spacing="2" fill="#5f584a">DOCUMENT.DOCX</text>
+		<rect x="22" y="60" width="150" height="10" rx="2" fill="#c9c0ad" />
+		<rect x="22" y="86" width="248" height="8" rx="2" fill="#d8d0bf" />
+		<rect x="22" y="106" width="248" height="8" rx="2" fill="#d8d0bf" />
+		<rect x="22" y="126" width="200" height="8" rx="2" fill="#d8d0bf" />
+		<rect x="22" y="160" width="110" height="8" rx="2" fill="#d8d0bf" />
+		<rect x="22" y="180" width="248" height="8" rx="2" fill="#d8d0bf" />
+		<rect x="22" y="200" width="230" height="8" rx="2" fill="#d8d0bf" />
+		<rect x="22" y="220" width="160" height="8" rx="2" fill="#d8d0bf" />
+		<line x1="22" y1="276" x2="270" y2="276" stroke="#cfc6b4" stroke-width="1" />
+		<text x="22" y="316" font-family="'IBM Plex Mono', ui-monospace, monospace" font-size="14" letter-spacing="1" fill="#8d8471">VALIDATE · CONVERT</text>
+	</g>
+
+	<!-- conversion line -->
+	<text x="646" y="308" font-family="'IBM Plex Mono', ui-monospace, monospace" font-size="15" letter-spacing="3" fill="#e64a38">CONVERT</text>
+	<line x1="646" y1="326" x2="812" y2="326" stroke="url(#glow)" stroke-width="2" />
+	<path d="M806 319l8 7-8 7" fill="none" stroke="#e64a38" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+	<circle cx="646" cy="326" r="4" fill="#e64a38" />
+</svg>

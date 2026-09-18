@@ -1,0 +1,133 @@
+# DocMorph — full documentation
+
+> DocMorph is a stateless, self-hosted HTTP microservice that converts DOCX documents to PDF using headless LibreOffice. It exposes one conversion endpoint, `POST /convert`, plus a public `GET /health` probe. It is single-purpose, container-first and safe for concurrent use.
+
+- Source: https://github.com/DarCas/docmorph
+- Website: https://docmorph.os.darcas.app/
+- License: MIT
+- Author: Dario Casertano (https://casertano.name)
+- Runtime: Node.js >= 22
+- Container image: `ghcr.io/darcas/docmorph:latest`
+
+## What it does
+
+- Accepts a `.docx` document as a multipart upload and returns a PDF.
+- Keeps no state: the request is the job, and it ends with the HTTP response.
+- Bounds concurrency with a semaphore so LibreOffice is never overloaded.
+- Runs each conversion in an isolated temporary directory with a dedicated LibreOffice user profile.
+
+## Install / run
+
+```bash
+docker run -d --name docmorph \
+  -p 8080:8080 \
+  -e API_KEYS="your-secret-key" \
+  ghcr.io/darcas/docmorph:latest
+```
+
+Docker Compose is supported; the repository ships `docker-compose.dist.yml`.
+
+## Convert a document
+
+### cURL
+
+```bash
+curl -o out.pdf \
+  -H "x-api-key: your-secret-key" \
+  -F "file=@document.docx;type=application/vnd.openxmlformats-officedocument.wordprocessingml.document" \
+  http://localhost:8080/convert
+```
+
+### TypeScript (native fetch, Node >= 22)
+
+```ts
+import { readFile, writeFile } from 'node:fs/promises';
+
+const docx = await readFile('document.docx');
+const form = new FormData();
+form.append('file', new Blob([docx], {
+  type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+}), 'document.docx');
+
+const res = await fetch('http://localhost:8080/convert', {
+  method: 'POST',
+  headers: { 'x-api-key': process.env.DOCMORPH_API_KEY! },
+  body: form,
+});
+
+if (!res.ok) throw new Error(`convert failed: ${res.status}`);
+await writeFile('out.pdf', Buffer.from(await res.arrayBuffer()));
+```
+
+### Python (requests)
+
+```python
+import os
+import requests
+
+with open('document.docx', 'rb') as f:
+    res = requests.post(
+        'http://localhost:8080/convert',
+        headers={'x-api-key': os.environ['DOCMORPH_API_KEY']},
+        files={'file': ('document.docx', f,
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document')},
+        timeout=90,
+    )
+res.raise_for_status()
+
+with open('out.pdf', 'wb') as f:
+    f.write(res.content)
+```
+
+## Configuration
+
+All settings are environment variables.
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `PORT` | `8080` | HTTP listen port |
+| `MAX_FILE_SIZE` | `10485760` | Max upload size in bytes (10 MiB) |
+| `CONVERT_TIMEOUT_MS` | `60000` | Per-conversion LibreOffice timeout |
+| `MAX_CONCURRENT` | `3` | Max simultaneous conversions |
+| `API_KEYS` | unset | Comma-separated API keys; unset means open access |
+| `RATE_LIMIT_WINDOW_MS` | `60000` | Rate-limit window per client IP |
+| `RATE_LIMIT_MAX` | `60` | Max requests per window per IP (`/health` excluded) |
+
+## API
+
+### GET /health
+
+Public, unauthenticated and excluded from rate limiting. Safe for load-balancer and Docker healthchecks.
+
+```json
+{
+  "status": "ok",
+  "authEnabled": true,
+  "concurrency": { "active": 0, "queued": 0, "max": 3 },
+  "maxFileSize": 10485760,
+  "rateLimit": { "max": 60, "windowMs": 60000 },
+  "timeoutMs": 60000
+}
+```
+
+### POST /convert
+
+Multipart upload with a single field named `file` containing a `.docx` document.
+
+- Auth (when enabled): `x-api-key: <key>` or `Authorization: Bearer <key>`, otherwise `401`.
+- Success: `200` with `Content-Type: application/pdf` and `Content-Disposition: inline; filename="<name>.pdf"` (filename sanitized to `[^A-Za-z0-9._-]`).
+- Errors:
+
+| Status | Meaning |
+| --- | --- |
+| `401` | Missing or invalid API key |
+| `412` | Missing `file` field or unsupported file extension |
+| `415` | File content is not a valid `.docx` (magic-byte check) |
+| `429` | Rate limit exceeded (`Retry-After` + `RateLimit-*` headers) |
+| `500` | Conversion failed |
+
+## Implementation notes
+
+- Each conversion runs `soffice --headless --convert-to pdf` in an isolated temp directory with a dedicated LibreOffice user profile per job, so concurrent conversions never interfere.
+- The Docker image installs `libreoffice-core` and `libreoffice-writer` plus Microsoft-compatible fonts.
+- Conversion requires `soffice`, which exists only in the Docker image. Running the Node process locally serves the routes, but `POST /convert` fails outside Docker.
