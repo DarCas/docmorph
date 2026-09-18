@@ -24,7 +24,7 @@
 	/* --- Color: text ---------------------------------------------------- */
 	--text: #ece7db;
 	--text-dim: #a39c8c;
-	--text-faint: #8f8878;
+	--text-faint: #96907f;
 
 	/* --- Color: lines --------------------------------------------------- */
 	--rule: #2b2923;
@@ -33,6 +33,7 @@
 
 	/* --- Color: accent (vermillion) ------------------------------------- */
 	--accent: #e64a38;
+	--accent-text: #ff5a44;
 	--accent-hover: #ff5a44;
 	--accent-deep: #b8301f;
 	--accent-ink: #141310;

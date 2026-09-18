@@ -93,13 +93,13 @@ All settings are environment variables:
 
 | Variable               | Default      | Description                                        |
 | ---------------------- | ------------ | -------------------------------------------------- |
-| `PORT`                 | `8080`       | HTTP listen port                                   |
-| `MAX_FILE_SIZE`        | `10485760`   | Max upload size in bytes (10 MiB)                  |
+| `API_KEYS`             | *(unset)*    | Comma-separated API keys; unset means open access  |
 | `CONVERT_TIMEOUT_MS`   | `60000`      | Per-conversion LibreOffice timeout                 |
 | `MAX_CONCURRENT`       | `3`          | Max simultaneous conversions                       |
-| `API_KEYS`             | *(unset)*    | Comma-separated API keys; unset means open access  |
-| `RATE_LIMIT_WINDOW_MS` | `60000`      | Rate-limit window per client IP                    |
+| `MAX_FILE_SIZE`        | `10485760`   | Max upload size in bytes (10 MiB)                  |
+| `PORT`                 | `8080`       | HTTP listen port                                   |
 | `RATE_LIMIT_MAX`       | `60`         | Max requests per window per IP (`/health` excluded)|
+| `RATE_LIMIT_WINDOW_MS` | `60000`      | Rate-limit window per client IP                    |
 
 ## API
 
@@ -111,9 +111,16 @@ Public, unauthenticated, and excluded from rate limiting — safe for load-balan
 {
   "status": "ok",
   "authEnabled": true,
-  "concurrency": { "active": 0, "queued": 0, "max": 3 },
+  "concurrency": {
+    "active": 0,
+    "queued": 0,
+    "max": 3
+  },
   "maxFileSize": 10485760,
-  "rateLimit": { "max": 60, "windowMs": 60000 },
+  "rateLimit": {
+    "max": 60,
+    "windowMs": 60000
+  },
   "timeoutMs": 60000
 }
 ```

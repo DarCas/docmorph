@@ -29,6 +29,6 @@ docker run -d --name docmorph \
 
 ## Links
 
-- Source code: https://github.com/DarCas/docmorph
-- Website: https://docmorph.os.darcas.app/
-- Author: Dario Casertano (https://casertano.name)
+- [Source code](https://github.com/DarCas/docmorph)
+- [Website](https://docmorph.os.darcas.app/)
+- [Author — Dario Casertano](https://casertano.name)
