@@ -1,9 +1,9 @@
 # DocMorph
 
-![Language](https://img.shields.io/badge/language-TypeScript-informational?style=for-the-badge)
-![Version](https://img.shields.io/badge/version-1.0.0-brightgreen?style=for-the-badge)
-
-![NPM License](https://img.shields.io/npm/l/%40darcas%2Fkeyplex?style=for-the-badge)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white&style=for-the-badge)
+[![Version](https://img.shields.io/github/v/tag/DarCas/docmorph?label=version&style=for-the-badge)](https://github.com/DarCas/docmorph/releases)
+![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
+![Node.js](https://img.shields.io/badge/node.js-%3E%3D22-5FA04E?logo=nodedotjs&logoColor=white&style=for-the-badge)
 
 [![Buy me a coffee](https://img.shields.io/badge/buy_me_a_coffee-%E2%9D%A4%EF%B8%8F-FEEBE7?style=for-the-badge&labelColor=FF0000)](https://www.paypal.com/donate/?hosted_button_id=YZQDE3TEYDBWA)
 
