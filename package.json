@@ -1,0 +1,35 @@
+{
+  "author": {
+    "email": "dario@casertano.name",
+    "name": "Dario Casertano",
+    "url": "https://casertano.name"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "express-rate-limit": "^8.7.0",
+    "multer": "^2.2.0"
+  },
+  "description": "Lockbox LibreOffice HTTP conversion worker",
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/multer": "^2.2.0",
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT",
+  "main": "dist/index.js",
+  "name": "app.darcas.io.docmorph",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "type": "module",
+  "version": "1.0.0"
+}

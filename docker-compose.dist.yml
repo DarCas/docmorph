@@ -1,0 +1,40 @@
+name: docmorph
+
+services:
+  api:
+    image: ghcr.io/darcas/docmorph:latest
+    container_name: docmorph
+    restart: unless-stopped
+
+    environment:
+      # API_KEYS: ""
+      CONVERT_TIMEOUT_MS: "60000"
+      MAX_CONCURRENT: "3"
+      MAX_FILE_SIZE: "10485760"
+      RATE_LIMIT_MAX: "60" # max requests per window per IP (GET /health excluded)
+      RATE_LIMIT_WINDOW_MS: "60000" # fixed-window length per client IP
+
+    ports:
+      - "3001:8080"
+
+    healthcheck:
+      test: [ "CMD", "node", "-e", "fetch('http://localhost:8080/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    deploy:
+      resources:
+        limits:
+          cpus: 2
+          memory: 1G
+        reservations:
+          cpus: 1
+          memory: 512M

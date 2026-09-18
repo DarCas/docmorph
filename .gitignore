@@ -1,0 +1,8 @@
+.idea/
+.git/
+dist/
+fonts/msttcorefonts/*
+node_modules/
+docker-builder.sh
+docker-compose*.yml
+!docker-compose.dist.yml
