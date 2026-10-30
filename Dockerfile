@@ -1,5 +1,5 @@
 # Stage 1: build (TypeScript -> dist)
-FROM node:22.23-slim AS build
+FROM node:22.23.4-slim AS build
 
 WORKDIR /app
 
@@ -12,7 +12,7 @@ COPY src ./src
 RUN npm run build
 
 # Stage 2: runtime
-FROM node:22.23-slim
+FROM node:22.23.4-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
