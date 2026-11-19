@@ -1,8 +1,10 @@
 # DocMorph
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white&style=for-the-badge)
-[![Version](https://img.shields.io/github/v/tag/DarCas/docmorph?label=version&style=for-the-badge)](https://github.com/DarCas/docmorph/releases)
 ![Node.js](https://img.shields.io/badge/node.js-%3E%3D22.23.4-5FA04E?logo=nodedotjs&logoColor=white&style=for-the-badge)
+
+[![Version](https://img.shields.io/github/v/tag/DarCas/docmorph?label=version&filter=v*&style=for-the-badge)](https://github.com/DarCas/docmorph/releases)
+[![SDK](https://img.shields.io/npm/v/@darcas/docmorph-sdk?label=sdk&style=for-the-badge)](https://www.npmjs.com/package/@darcas/docmorph-sdk)
 
 ![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
 
@@ -19,9 +21,10 @@ Single-purpose, container-first, and safe for concurrent use — upload a file, 
   and `%PDF` assertion on the output.
 - **Concurrency control** — bounded conversion pool (semaphore) so LibreOffice never gets more work
   than it can handle.
-- **Optional API-key auth** — when `API_KEYS` is set, every route except `/health` requires
-  `x-api-key` or `Authorization: Bearer`.
-- **Rate limiting** — per-IP fixed window via `express-rate-limit` (`/health` excluded).
+- **Optional API-key auth** — when `API_KEYS` is set, `POST /convert` requires
+  `x-api-key` or `Authorization: Bearer`; `/health` and `/robots.txt` stay public.
+- **Rate limiting** — per-IP fixed window via `express-rate-limit` (`/health` and `/robots.txt`
+  excluded).
 - **Observable** — `GET /health` reports status, pool load, limits, and whether auth is enabled.
 
 ## Quick start
@@ -33,13 +36,18 @@ docker run -d --name docmorph \
   ghcr.io/darcas/docmorph:latest
 ```
 
-Or with Docker Compose (see `docker-compose.dist.yml`):
+Or with the tracked Docker Compose template, which publishes port `3001`:
 
 ```bash
-docker compose up --build
+docker compose -f docker-compose.dist.yml up -d
 ```
 
+Set `API_KEYS` in the compose file (or your own `docker-compose.yml`) to enable auth.
+
 ## Convert a document:
+
+The examples below use `localhost:8080`, the port of the `docker run` command above.
+With the compose template, replace `8080` with `3001`.
 
 #### cURL
 
@@ -102,7 +110,7 @@ All settings are environment variables:
 | `MAX_CONCURRENT`       | `3`        | Max simultaneous conversions                        |
 | `MAX_FILE_SIZE`        | `10485760` | Max upload size in bytes (10 MiB)                   |
 | `PORT`                 | `8080`     | HTTP listen port                                    |
-| `RATE_LIMIT_MAX`       | `60`       | Max requests per window per IP (`/health` excluded) |
+| `RATE_LIMIT_MAX`       | `60`       | Max requests per window per IP (`/health` and `/robots.txt` excluded) |
 | `RATE_LIMIT_WINDOW_MS` | `60000`    | Rate-limit window per client IP                     |
 
 ## API
@@ -141,11 +149,35 @@ Multipart upload with a single field named `file` containing a `.docx` document.
 
 | Status | Meaning                                                     |
 |--------|-------------------------------------------------------------|
+| `400`  | Upload exceeds `MAX_FILE_SIZE`                              |
 | `401`  | Missing or invalid API key                                  |
 | `412`  | Missing `file` field or unsupported file extension          |
 | `415`  | File content is not a valid `.docx` (magic-byte check)      |
-| `429`  | Rate limit exceeded (`Retry-After` + `RateLimit-*` headers) |
+| `429`  | Rate limit exceeded (`Retry-After` + `RateLimit` headers)   |
 | `500`  | Conversion failed                                           |
+
+## SDK
+
+The official client is [`@darcas/docmorph-sdk`](https://www.npmjs.com/package/@darcas/docmorph-sdk):
+ESM + CJS, Node ≥ 20 and browsers, zero runtime dependencies.
+
+```bash
+npm install @darcas/docmorph-sdk
+```
+
+```ts
+import {DocMorphClient} from '@darcas/docmorph-sdk';
+
+const client = new DocMorphClient({
+    baseUrl: 'http://localhost:8080',
+    apiKey: process.env.DOCMORPH_API_KEY,
+});
+
+const {bytes} = await client.convert(docxBytes, {filename: 'document.docx'});
+```
+
+Options, error codes and the `convertFile` Node helper are documented in
+[`sdk/README.md`](sdk/README.md).
 
 ## Local development
 
@@ -160,7 +192,7 @@ npm run build && npm start  # compile src/ → dist/ and run
 
 > Conversion itself needs `soffice` (`libreoffice-core` + `libreoffice-writer`), which exists only
 > in the Docker image. Local `npm run dev` serves the routes, but `POST /convert` will fail with
-> `CONVERSION_FAILED` outside Docker — verify via `docker compose up --build`.
+> `CONVERSION_FAILED` outside Docker — verify inside the built image.
 
 ## Project structure
 
@@ -171,6 +203,8 @@ src/
 ├── concurrency.ts  # semaphore bounding simultaneous conversions
 └── logger.ts       # request-scoped key=value stdout/stderr logging
 ```
+
+`sdk/` holds the published npm client (`@darcas/docmorph-sdk`).
 
 Each conversion runs `soffice --headless --convert-to pdf` in an isolated temp directory with a
 dedicated LibreOffice user profile per job, so concurrent conversions never interfere.

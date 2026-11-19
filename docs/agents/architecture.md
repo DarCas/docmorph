@@ -42,7 +42,8 @@ Consequence: rate limiting runs before auth, so rejected `401` requests still co
 2. `pool.acquire()` yields a release function; the caller waits in FIFO order when saturated.
 3. `convertDocxToPdf(buffer, originalname, { timeoutMs })`:
    - re-validates extension (`UNSUPPORTED_TYPE`) and ZIP magic (`INVALID_CONTENT`);
-   - creates `os.tmpdir()/lo-<uuid>/` with a `profile/` subdirectory;
+   - creates `os.tmpdir()/lo-<uuid>/` and points `-env:UserInstallation` at `profile/` inside it
+     (LibreOffice creates that directory on first run);
    - writes `<sanitized-base>.docx`, runs `soffice --headless --convert-to pdf --outdir <jobDir> -env:UserInstallation=file://<jobDir>/profile <source>`;
    - reads `<sanitized-base>.pdf`, asserts the `%PDF` magic header;
    - removes the job directory in `finally` (not awaited; failures ignored).

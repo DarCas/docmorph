@@ -1,16 +1,19 @@
-# DocMorph SDK
+# DocMorph SDK [![SDK CI](https://github.com/DarCas/docmorph/actions/workflows/sdk.yml/badge.svg)](https://github.com/DarCas/docmorph/actions/workflows/sdk.yml)
 
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white&style=for-the-badge)
 [![npm version](https://img.shields.io/npm/v/@darcas/docmorph-sdk?style=for-the-badge)](https://www.npmjs.com/package/@darcas/docmorph-sdk)
 ![Node.js](https://img.shields.io/badge/node.js-%3E%3D20-5FA04E?logo=nodedotjs&logoColor=white&style=for-the-badge)
+
 ![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
-[![SDK CI](https://github.com/DarCas/docmorph/actions/workflows/sdk.yml/badge.svg)](https://github.com/DarCas/docmorph/actions/workflows/sdk.yml)
+
+[![Buy me a coffee](https://img.shields.io/badge/buy_me_a_coffee-%E2%9D%A4%EF%B8%8F-FEEBE7?style=for-the-badge&labelColor=FF0000)](https://www.paypal.com/donate/?hosted_button_id=YZQDE3TEYDBWA)
 
 Typed, isomorphic JavaScript client for the [DocMorph](../README.md) DOCX → PDF
 API. Zero runtime dependencies, ESM + CJS, Node 20+ and browsers.
 
-The package covers every route the service exposes: `POST /convert` and
-`GET /health`. It adds client-side input validation, typed errors, timeouts,
-cancellation and optional retries.
+The package covers both API routes: `POST /convert` and `GET /health`. It adds
+client-side input validation, typed errors, timeouts, cancellation and optional
+retries.
 
 ## Install
 
@@ -76,7 +79,7 @@ const pdf = await convert(docxBytes, {filename: 'report.docx'})
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
 | `baseUrl` | `string` | required | Absolute `http`/`https` URL, optionally with a path prefix. |
-| `apiKey` | `string` | — | Sent with every conversion request. Omit for open servers. |
+| `apiKey` | `string` | — | Sent with every request. Omit for open servers. |
 | `authScheme` | `'x-api-key' \| 'bearer'` | `'x-api-key'` | Header used for the key. |
 | `timeoutMs` | `number` | `120000` | Per-attempt timeout. |
 | `retries` | `number` | `0` | Retries after the first attempt. |

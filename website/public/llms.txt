@@ -10,8 +10,8 @@ DocMorph is a self-hosted service that does exactly one job: it accepts a `.docx
 - Output: `application/pdf`, `Content-Disposition: inline; filename="<name>.pdf"`.
 - Endpoint: `POST /convert`.
 - Health: `GET /health` — public, unauthenticated, excluded from rate limiting.
-- Auth: optional API keys. When `API_KEYS` is set, every route except `/health` requires `x-api-key: <key>` or `Authorization: Bearer <key>`.
-- Rate limiting: per-client-IP fixed window, 60 requests per 60 s by default (`/health` excluded).
+- Auth: optional API keys. When `API_KEYS` is set, `POST /convert` requires `x-api-key: <key>` or `Authorization: Bearer <key>`; `/health` and `/robots.txt` stay public, and unknown paths answer `404` instead of `401`.
+- Rate limiting: per-client-IP fixed window, 60 requests per 60 s by default (`/health` and `/robots.txt` excluded).
 - Concurrency: bounded pool, 3 simultaneous conversions by default.
 - Timeout: 60 s per conversion by default.
 - Validation: file extension check, OOXML/ZIP magic-byte check, `%PDF` assertion on the output.

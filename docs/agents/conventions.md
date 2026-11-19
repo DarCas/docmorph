@@ -26,6 +26,7 @@
 - Keep `.js` suffixes on relative imports in `src/`.
 - Public methods (`health`, `convert`) are arrow functions assigned in the class body, so they are own enumerable properties and survive destructuring. Private helpers stay on the prototype; do not move the public methods back.
 - README examples are runnable and English; error-code and status tables must match `src/client.ts` and `docs/agents/api.md`.
+- The root `README.md` links to `sdk/README.md` for the client: it shows a short quick start only and never duplicates the option or error tables.
 
 ## Website (`website/`)
 

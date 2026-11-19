@@ -91,7 +91,7 @@ All settings are environment variables.
 | `MAX_CONCURRENT` | `3` | Max simultaneous conversions |
 | `API_KEYS` | unset | Comma-separated API keys; unset means open access |
 | `RATE_LIMIT_WINDOW_MS` | `60000` | Rate-limit window per client IP |
-| `RATE_LIMIT_MAX` | `60` | Max requests per window per IP (`/health` excluded) |
+| `RATE_LIMIT_MAX` | `60` | Max requests per window per IP (`/health` and `/robots.txt` excluded) |
 
 ## API
 
@@ -120,10 +120,11 @@ Multipart upload with a single field named `file` containing a `.docx` document.
 
 | Status | Meaning |
 | --- | --- |
+| `400` | Upload exceeds `MAX_FILE_SIZE` |
 | `401` | Missing or invalid API key |
 | `412` | Missing `file` field or unsupported file extension |
 | `415` | File content is not a valid `.docx` (magic-byte check) |
-| `429` | Rate limit exceeded (`Retry-After` + `RateLimit-*` headers) |
+| `429` | Rate limit exceeded (`Retry-After` + `RateLimit` headers) |
 | `500` | Conversion failed |
 
 ## SDK (`@darcas/docmorph-sdk`)

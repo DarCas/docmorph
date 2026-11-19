@@ -105,7 +105,7 @@ file has no `build:` stanza), then point the SDK at the mapped port:
 
 ```bash
 docker build -t ghcr.io/darcas/docmorph:latest .
-docker compose up -d
+docker compose up -d   # fresh clone: docker compose -f docker-compose.dist.yml up -d
 
 cd sdk && npm run build
 node --input-type=module -e "
@@ -129,8 +129,12 @@ without this Docker step.
 2. Commit and push, then tag `sdk-vX.Y.Z` and push the tag.
 3. `.github/workflows/sdk.yml` runs the Node 20/22 matrix, checks that the tag
    equals the package version, and publishes with
-   `npm publish --provenance --access public`.
+   `npm publish --access public --provenance`.
 
-Prerequisites: the `NPM_TOKEN` repository secret or an npm trusted publisher
-configured for this workflow. `publishConfig.access` is already `public`, so
-manual `npm publish` works too (without provenance, which is CI-only).
+Prerequisites: an npm trusted publisher configured for this workflow. On npmjs.com
+the package settings must list `DarCas` / `docmorph` / `sdk.yml` and allow
+`npm publish` (staged publishing alone requires a manual 2FA approval). The job
+authenticates with OIDC through `id-token: write`; it holds no npm token, so a
+`NPM_TOKEN` secret does nothing. Trusted publishing needs npm ≥ 11.5.1, hence
+`node-version: 24` in that job. A brand-new trusted publisher configuration
+expires if it is not validated by a first successful publish within two days.

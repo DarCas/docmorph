@@ -30,7 +30,7 @@ docker compose logs -f api
 docker compose down
 ```
 
-The tracked compose file maps `3001:8080`. A standalone `docker run -p 8080:8080 ...` serves on `8080` instead.
+The tracked compose file maps `3001:8080`. A standalone `docker run -p 8080:8080 ...` serves on `8080` instead. A fresh clone only has `docker-compose.dist.yml`, and Compose does not load that name automatically: use `docker compose -f docker-compose.dist.yml up -d`.
 
 For an SDK end-to-end run, build `sdk/`, point `DocMorphClient` at `http://localhost:3001`, convert a real `.docx` and assert the output starts with `%PDF`. The procedure is in [SDK](sdk.md#end-to-end-check-docker). The SDK test suite uses a mock server and proves nothing about `soffice`.
 

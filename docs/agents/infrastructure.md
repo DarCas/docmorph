@@ -30,17 +30,21 @@ Version bumps happen only in `package.json`; the image tag is not derived automa
 
 ## GitHub Actions
 
-`.github/workflows/pages.yml` is the only workflow — website deployment only, no service build or test.
+`.github/workflows/pages.yml` deploys the website and `.github/workflows/sdk.yml` tests and publishes the SDK. They are the only workflows; neither builds or tests the service.
+
+`pages.yml`:
 
 - Triggers: push to `master` touching `website/**` or the workflow file, plus `workflow_dispatch`.
 - Node 22, `npm install --no-audit --no-fund` (not `npm ci`) in `website/`.
 - `npm run build`, then copies `website/CNAME` into `website/dist`, uploads the directory as a Pages artifact, deploys with `actions/deploy-pages@v4`.
 - `concurrency.group: pages`, `cancel-in-progress: true`.
 
+`sdk.yml` runs `typecheck` and `node:test` on Node 20/22, then publishes on `sdk-v*` tags. See [SDK](sdk.md).
+
 Custom domain comes from `website/CNAME` (`docmorph.os.darcas.app`); `index.html` canonical/OG URLs point to the same origin.
 
 ## Build context and ignores
 
-- `.dockerignore` excludes `node_modules`, `.git`, compose files, `Dockerfile`, `*.md`, `.env*`. Documentation and the website never enter the image.
+- `.dockerignore` excludes `node_modules`, `.git`, `docker-compose.yml`, `Dockerfile`, `*.md`, `.env*`. Documentation and the website never enter the image.
 - Root `.gitignore` excludes `dist/`, `node_modules/`, `fonts/msttcorefonts/*`, `.idea/`, `docker-builder.sh`, and `docker-compose*.yml` except `docker-compose.dist.yml`.
 - `website/dist` and `website/node_modules` are ignored by `website/.gitignore`; `website/src/generated/snippets.json` is tracked and must be regenerated when snippets change.
