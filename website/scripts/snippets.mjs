@@ -64,6 +64,25 @@ services:
     ports:
       - "8080:8080"`
 	},
+	'sdk-install': {
+		lang: 'bash',
+		code: `npm install @darcas/docmorph-sdk`
+	},
+	'sdk-convert': {
+		lang: 'typescript',
+		code: `import { DocMorphClient } from '@darcas/docmorph-sdk';
+import { readFile, writeFile } from 'node:fs/promises';
+
+const client = new DocMorphClient({
+  baseUrl: 'http://localhost:8080',
+  apiKey: process.env.DOCMORPH_API_KEY,
+});
+const { convert } = client;
+
+const docx = await readFile('document.docx');
+const pdf = await convert(docx, { filename: 'document.docx' });
+await writeFile(pdf.filename, pdf.bytes);`
+	},
 	'health-check': {
 		lang: 'bash',
 		code: `curl http://localhost:8080/health

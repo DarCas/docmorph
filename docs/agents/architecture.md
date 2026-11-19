@@ -2,12 +2,13 @@
 
 ## System shape
 
-Two independent deliverables in one repository:
+Three independent deliverables in one repository:
 
 - **Conversion service** — a stateless Express app in `src/`, compiled to `dist/`, shipped as one Docker image.
 - **Landing site** — a static React/Vite site in `website/`, prerendered at build time and deployed to GitHub Pages.
+- **SDK** — `@darcas/docmorph-sdk` in `sdk/`, a zero-dependency isomorphic client published to npm.
 
-They share no code and no runtime dependency. The site only contains copied code snippets; it never calls the API.
+They share no code and no runtime dependency. The site only contains copied code snippets; it never calls the API. The SDK talks to the service over HTTP and is versioned and released independently.
 
 ## Conversion service
 
@@ -66,6 +67,20 @@ There is no queue persistence, no job store, and no session: if the process dies
 
 `trust proxy` is `1`, matching a single reverse proxy hop in front of the container (the deploy comment names Apache `ProxyPass` to `localhost:3001`). `req.ip` therefore comes from the last `X-Forwarded-For` entry. Changing the number of hops silently changes rate-limit bucketing and should be treated as a deployment change.
 
+## SDK (`sdk/`)
+
+`@darcas/docmorph-sdk` is an independent npm package: zero runtime dependencies, ESM + CJS, browser and Node. It shares no code with the service and mirrors the HTTP contract by hand.
+
+| Piece | Responsibility |
+| --- | --- |
+| `sdk/src/types.d.ts` | Single source of every public type. |
+| `sdk/src/client.ts` | `DocMorphClient`: input validation, multipart upload, health, retries, timeouts, abort, status-to-code mapping. |
+| `sdk/src/errors.ts` | `DocMorphError` with a stable `code` discriminant. |
+| `sdk/src/node.ts` | `convertFile` filesystem helper, exported as `./node`. |
+| `sdk/scripts/postbuild.mjs` | Copies `types.d.ts` into both output trees and marks the CJS tree. |
+
+Build order (`sdk/package.json`): clean → ESM `tsc` → CJS `tsc` → postbuild. Tests use `node:test` against `dist/` with a local mock server; there is no build-time dependency on the service. See [SDK](sdk.md).
+
 ## Landing site
 
 Build order (`website/package.json`): `scripts/highlight.mjs` → `tsc --noEmit` → `vite build` → `scripts/prerender.mjs`.
@@ -81,4 +96,4 @@ Build order (`website/package.json`): `scripts/highlight.mjs` → `tsc --noEmit`
 
 Version injection: `vite.config.ts` defines `__SITE_VERSION__` (website `package.json`) and `__SOFTWARE_VERSION__` (root `package.json`), and rewrites the JSON-LD `"softwareVersion"` placeholder during `transformIndexHtml`. `SitemapLastmod` writes the build date into `dist/sitemap.xml` in `closeBundle`.
 
-The site has no source of truth for API behavior. Snippets and copy must be updated manually when the API changes; nothing fails the website build if they drift.
+The site and the SDK have no source of truth for API behavior. Snippets, copy and the client's status/error mapping must be updated manually when the API changes; neither build fails if they drift.

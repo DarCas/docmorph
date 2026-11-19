@@ -37,6 +37,7 @@ export function Hero() {
 					<div className="hero__meta">
 						<span>MIT License</span>
 						<span>One endpoint</span>
+						<span>Typed SDK</span>
 						<span>Node ≥ 22</span>
 						<span>Docker-ready</span>
 					</div>

@@ -1,0 +1,68 @@
+name: Publish SDK
+
+on:
+  push:
+    tags:
+      - 'sdk-v*'
+    paths:
+      - 'sdk/**'
+      - '.github/workflows/sdk.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test Node ${{ matrix.node-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version:
+          - 20
+          - 22
+    defaults:
+      run:
+        working-directory: sdk
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: sdk/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm pack --dry-run
+
+  publish:
+    name: Publish
+    if: startsWith(github.ref, 'refs/tags/sdk-v')
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: sdk
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          registry-url: 'https://registry.npmjs.org'
+          cache: npm
+          cache-dependency-path: sdk/package-lock.json
+          package-manager-cache: false
+      - run: npm ci --no-audit --no-fund
+      - name: Verify tag matches package version
+        run: |
+          tag="${GITHUB_REF_NAME#sdk-v}"
+          version="$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$version" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match sdk/package.json version $version" >&2
+            exit 1
+          fi
+      - run: npm publish --access public --provenance

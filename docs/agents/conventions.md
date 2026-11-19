@@ -16,6 +16,17 @@
 - Version comes from `package.json` via `createRequire(import.meta.url)('../package.json')` and falls back to `unknown`. It resolves in both `src/` (dev) and `dist/` (build).
 - `tsconfig` has `removeComments: true`, so JSDoc never ships in `dist/`.
 
+## SDK (`sdk/`)
+
+- Same textual style as the service: 4 spaces, single quotes, no semicolons, copyright header on every file.
+- Public types, interfaces, unions and aliases live only in `src/types.d.ts`. Runtime classes live in `.ts`; do not duplicate them as declarations.
+- `strict: true`, `target: ES2022`, no lint. Tests use `node:test` and `node:assert/strict` in `.mjs`; they import from `dist/`, not `src/`.
+- Core files may only use web-standard APIs. Node built-ins are confined to `src/node.ts`.
+- Exported classes and helpers carry JSDoc with `@param`/`@returns`/`@throws`; declarations keep comments because the SDK tsconfigs set `removeComments: false` (deliberate exception to the service setting).
+- Keep `.js` suffixes on relative imports in `src/`.
+- Public methods (`health`, `convert`) are arrow functions assigned in the class body, so they are own enumerable properties and survive destructuring. Private helpers stay on the prototype; do not move the public methods back.
+- README examples are runnable and English; error-code and status tables must match `src/client.ts` and `docs/agents/api.md`.
+
 ## Website (`website/`)
 
 - Tabs for indentation, semicolons, single quotes. Do not reformat with the service's style.

@@ -41,6 +41,14 @@ export function Footer() {
                             <li>
                                 <a href="#api">API</a>
                             </li>
+                            <li>
+                                <a href="https://www.npmjs.com/package/@darcas/docmorph-sdk"
+                                   target="_blank"
+                                   rel="noreferrer noopener"
+                                >
+                                    npm
+                                </a>
+                            </li>
                         </ul>
                         <CoffeeButton/>
                     </div>

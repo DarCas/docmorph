@@ -18,6 +18,30 @@ DocMorph is a self-hosted service that does exactly one job: it accepts a `.docx
 - Runtime: Node.js >= 22, Docker (the image bundles LibreOffice core + Writer and fonts).
 - License: MIT.
 
+## SDK
+
+`@darcas/docmorph-sdk` is the official typed JavaScript client: zero runtime dependencies, ESM + CJS, Node.js >= 20 and browsers.
+
+```bash
+npm install @darcas/docmorph-sdk
+```
+
+```ts
+import {DocMorphClient} from '@darcas/docmorph-sdk'
+import {convertFile} from '@darcas/docmorph-sdk/node'
+import {writeFile} from 'node:fs/promises'
+
+const client = new DocMorphClient({
+    baseUrl: 'https://docmorph.example.com',
+    apiKey: process.env.DOCMORPH_API_KEY,
+})
+
+const pdf = await convertFile(client, 'document.docx')
+await writeFile(pdf.filename, pdf.bytes)
+```
+
+The SDK covers `POST /convert` and `GET /health`, adds client-side validation, typed errors (`DocMorphError.code`), timeouts, cancellation and opt-in retries.
+
 ## Deployment
 
 ```bash
@@ -30,5 +54,7 @@ docker run -d --name docmorph \
 ## Links
 
 - [Source code](https://github.com/DarCas/docmorph)
+- [SDK on npm](https://www.npmjs.com/package/@darcas/docmorph-sdk)
+- [SDK documentation](https://github.com/DarCas/docmorph/tree/master/sdk)
 - [Website](https://docmorph.os.darcas.app/)
 - [Author — Dario Casertano](https://casertano.name)

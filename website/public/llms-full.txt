@@ -126,6 +126,36 @@ Multipart upload with a single field named `file` containing a `.docx` document.
 | `429` | Rate limit exceeded (`Retry-After` + `RateLimit-*` headers) |
 | `500` | Conversion failed |
 
+## SDK (`@darcas/docmorph-sdk`)
+
+Official typed JavaScript client for the service. Zero runtime dependencies, dual ESM/CJS build, bundled TypeScript declarations, Node.js >= 20 and browsers.
+
+```bash
+npm install @darcas/docmorph-sdk
+```
+
+```ts
+import {DocMorphClient} from '@darcas/docmorph-sdk'
+import {convertFile} from '@darcas/docmorph-sdk/node'
+import {writeFile} from 'node:fs/promises'
+
+const client = new DocMorphClient({
+    baseUrl: 'https://docmorph.example.com',
+    apiKey: process.env.DOCMORPH_API_KEY,
+})
+
+const pdf = await convertFile(client, 'document.docx')
+await writeFile(pdf.filename, pdf.bytes)
+```
+
+- `client.convert(input, options?)` accepts a `Blob`/`File`, `ArrayBuffer` or `ArrayBufferView` and returns `{ bytes, filename, contentType }`.
+- `client.health()` reads `GET /health` and returns the typed `HealthResponse`, including live concurrency state.
+- `health` and `convert` are bound to the instance, so destructuring them (`const {convert} = client`) or passing them as callbacks needs no wrapper.
+- `convertFile(client, path)` is the Node-only helper exported from `@darcas/docmorph-sdk/node`; it accepts a filesystem path or a `file:` URL.
+- Every failure is a `DocMorphError` with a stable `code`: `INVALID_ARGUMENT`, `INVALID_FILE`, `INVALID_CONTENT`, `FILE_TOO_LARGE`, `UNAUTHORIZED`, `RATE_LIMITED`, `CONVERSION_FAILED`, `NOT_FOUND`, `HTTP_ERROR`, `NETWORK_ERROR`, `TIMEOUT`, `ABORTED`, `INVALID_RESPONSE`.
+- Retries are opt-in (default `0`) and cover only `429`, `502`, `503`, `504` and network failures. The default timeout is 120 s per attempt.
+- Links: [npm](https://www.npmjs.com/package/@darcas/docmorph-sdk) · [README](https://github.com/DarCas/docmorph/tree/master/sdk)
+
 ## Implementation notes
 
 - Each conversion runs `soffice --headless --convert-to pdf` in an isolated temp directory with a dedicated LibreOffice user profile per job, so concurrent conversions never interfere.

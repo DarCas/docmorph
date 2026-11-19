@@ -28,7 +28,7 @@ export function OperationsSection() {
 			<div className="container">
 				<header className="section-head">
 					<p className="eyebrow">
-						<span className="eyebrow__index">05</span> / Operability
+						<span className="eyebrow__index">06</span> / Operability
 					</p>
 					<h2 className="section-title" id="operations-title">
 						Built to be operated.

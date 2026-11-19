@@ -7,6 +7,7 @@ import { FinalCTA } from './sections/FinalCTA';
 import { Guardrails } from './sections/Guardrails';
 import { Hero } from './sections/Hero';
 import { OperationsSection } from './sections/OperationsSection';
+import { SdkSection } from './sections/SdkSection';
 import { SmallByDesign } from './sections/SmallByDesign';
 import { Transformation } from './sections/Transformation';
 
@@ -21,6 +22,7 @@ export function App() {
 				<SmallByDesign />
 				<Guardrails />
 				<ApiSection />
+				<SdkSection />
 				<OperationsSection />
 				<DeploymentSection />
 				<FinalCTA />

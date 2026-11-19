@@ -41,6 +41,10 @@ export function ApiSection() {
 							<span className="endpoint__desc">field: file</span>
 						</div>
 						<CodeTabs tabs={TABS} label="Convert a document" />
+						<p className="guard__aside-note">
+							Prefer a client? Install <code>@darcas/docmorph-sdk</code> and skip the multipart
+							plumbing — <a href="#sdk">see the SDK</a>.
+						</p>
 					</div>
 
 					<div>

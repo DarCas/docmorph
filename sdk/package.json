@@ -1,0 +1,82 @@
+{
+  "author": {
+    "email": "dario@casertano.name",
+    "name": "Dario Casertano",
+    "url": "https://casertano.name"
+  },
+  "bugs": {
+    "url": "https://github.com/DarCas/docmorph/issues"
+  },
+  "description": "Typed isomorphic JavaScript client for the DocMorph DOCX to PDF API",
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    },
+    "./node": {
+      "import": {
+        "types": "./dist/esm/node.d.ts",
+        "default": "./dist/esm/node.js"
+      },
+      "require": {
+        "types": "./dist/cjs/node.d.ts",
+        "default": "./dist/cjs/node.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "homepage": "https://github.com/DarCas/docmorph/tree/master/sdk#readme",
+  "keywords": [
+    "docmorph",
+    "docx",
+    "pdf",
+    "libreoffice",
+    "conversion",
+    "client",
+    "sdk",
+    "fetch"
+  ],
+  "license": "MIT",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "name": "@darcas/docmorph-sdk",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/DarCas/docmorph.git",
+    "directory": "sdk"
+  },
+  "scripts": {
+    "build": "npm run clean && tsc -p tsconfig.esm.json && tsc -p tsconfig.cjs.json && node scripts/postbuild.mjs",
+    "clean": "node -e \"require('node:fs').rmSync('dist', {recursive: true, force: true})\"",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run typecheck && npm test",
+    "pretest": "npm run build",
+    "test": "node --test",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "types": "./dist/esm/index.d.ts",
+  "version": "1.0.0"
+}

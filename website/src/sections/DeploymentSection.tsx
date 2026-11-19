@@ -29,7 +29,7 @@ export function DeploymentSection() {
 			<div className="container">
 				<header className="section-head">
 					<p className="eyebrow">
-						<span className="eyebrow__index">06</span> / Self-host it
+						<span className="eyebrow__index">07</span> / Self-host it
 					</p>
 					<h2 className="section-title" id="deploy-title">
 						One container. Your infrastructure.
