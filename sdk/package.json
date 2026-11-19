@@ -43,7 +43,7 @@
     "README.md",
     "LICENSE"
   ],
-  "homepage": "https://github.com/DarCas/docmorph/tree/master/sdk#readme",
+  "homepage": "https://docmorph.os.darcas.app/",
   "keywords": [
     "docmorph",
     "docx",
@@ -63,7 +63,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/DarCas/docmorph.git",
+    "url": "git+https://github.com/DarCas/docmorph.git",
     "directory": "sdk"
   },
   "scripts": {
